@@ -12,7 +12,7 @@ The Pi talks to the radio over USB and serves Icom's network protocol (UDP ports
 
 ## Status
 
-Just starting. The plan:
+wfview's `wfserver` (2.03, from the Raspberry Pi OS packages) is installed and runs on a Zero W, and the e-paper status screen works. Not yet tested with the radio attached. The plan:
 
 1. **Try wfview's server mode on the Pi.** wfview 2.03 is packaged for Raspberry Pi OS. This shows whether a Zero W can keep up with CI-V, audio and the scope, and whether clients connect cleanly.
 2. **Decide what to build.** If wfview works, this repo holds the setup plus an e-paper status display. If it is too heavy for the Zero W, this repo grows a lean bridge of its own.
@@ -25,6 +25,30 @@ Just starting. The plan:
 - Optional: Waveshare 2.13" e-paper HAT, for showing the Pi's IP address, WiFi signal, connected client and frequency.
 
 Turn the IC-705's own WiFi off while using the bridge.
+
+## Setup on the Pi
+
+```
+sudo apt install wfview          # provides wfserver
+sudo raspi-config nonint do_spi 0   # for the e-paper HAT, then reboot
+git clone https://github.com/zendata/ic705-wifi-bridge ~/ic705-wifi-bridge
+sudo ~/ic705-wifi-bridge/pi/install.sh
+```
+
+`install.sh` installs:
+
+- `bridge-status.service`: the e-paper status screen (`epaper/status.py`). It shows the WiFi network and signal, the IP address, whether the IC-705 is on USB, and whether the server is running. It redraws only when one of those changes.
+- `wfserver.service`: wfserver with its settings in `~/wfserver/wfserver.ini`. It is enabled by `bridge-mode radio`.
+- `bridge-mode`: switches the Pi's single USB port, then reboots:
+  - `sudo bridge-mode radio`: the Pi is USB host for the IC-705 and wfserver runs.
+  - `sudo bridge-mode computer`: the Pi is a USB network gadget for a computer, and wfserver is off.
+
+The e-paper driver defaults to the 2.13" V4 panel. For other versions, set `EPD_DRIVER=epd2in13_V3` or `epd2in13_V2` in the service. The drivers in `epaper/waveshare_epd/` come from [Waveshare's e-Paper repo](https://github.com/waveshareteam/e-Paper) under its MIT-style licence.
+
+## On the IC-705
+
+- Set **SET > Function > USB Power Input (Phone, Tablet, PC)** to **OFF**. Otherwise the radio tries to charge its battery from the Pi's USB port.
+- Turn the radio's own WiFi off.
 
 ## Licence
 

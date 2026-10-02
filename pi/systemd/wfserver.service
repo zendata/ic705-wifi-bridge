@@ -1,0 +1,13 @@
+[Unit]
+Description=wfserver: serve the IC-705 on USB as an Icom network radio
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+User=graham
+ExecStart=/usr/bin/wfserver -s /home/graham/wfserver/wfserver.ini -l /home/graham/wfserver/wfserver.log
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

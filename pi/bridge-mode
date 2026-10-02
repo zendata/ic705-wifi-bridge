@@ -1,0 +1,29 @@
+#!/bin/sh
+# Switch the Pi's one USB port between its two jobs, then reboot.
+#
+#   bridge-mode radio      USB host for the IC-705; wfserver serves it over WiFi
+#   bridge-mode computer   USB gadget for a computer (ssh graham@10.12.194.1); wfserver off
+#   bridge-mode            show the current mode
+set -e
+
+current() {
+    if [ -e /etc/modules-load.d/usb-gadget.conf ]; then echo computer; else echo radio; fi
+}
+
+[ -z "$1" ] && { echo "USB mode: $(current)"; exit 0; }
+[ "$(id -u)" = 0 ] || { echo "run with sudo" >&2; exit 1; }
+
+case "$1" in
+    radio)
+        rpi-usb-gadget off
+        systemctl enable wfserver.service
+        ;;
+    computer)
+        systemctl disable wfserver.service
+        rpi-usb-gadget on
+        ;;
+    *) echo "usage: bridge-mode [radio|computer]" >&2; exit 2 ;;
+esac
+
+echo "Switched to $1 mode; rebooting."
+systemctl reboot

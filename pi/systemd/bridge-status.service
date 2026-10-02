@@ -1,0 +1,14 @@
+[Unit]
+Description=Bridge status on the e-paper HAT
+After=network-online.target
+
+[Service]
+User=graham
+# lgpio writes its notify pipes into the working directory, which is / for a service.
+Environment=LG_WD=/tmp
+ExecStart=/usr/bin/python3 /home/graham/ic705-wifi-bridge/epaper/status.py
+Restart=on-failure
+RestartSec=30
+
+[Install]
+WantedBy=multi-user.target
