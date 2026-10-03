@@ -10,6 +10,7 @@ refresh takes a few seconds, flashes the panel and wears it a little.
 """
 import glob
 import importlib
+import json
 import os
 import socket
 import subprocess
@@ -131,14 +132,23 @@ def render(epd, s):
     epd.sleep()
 
 
-def main():
+def draw(s):
     driver = importlib.import_module("waveshare_epd." + os.environ.get("EPD_DRIVER", "epd2in13_V4"))
-    epd = driver.EPD()
+    render(driver.EPD(), s)
+
+
+def main():
+    if "--draw" in sys.argv:
+        draw(json.loads(sys.stdin.read()))
+        return
     shown = None
     while True:
         s = gather()
         if s != shown:
-            render(epd, s)
+            # Draw in a child process: holding the GPIO open keeps lgpio's threads busy,
+            # which costs the Zero W CPU that the audio needs between redraws.
+            subprocess.run([sys.executable, os.path.abspath(__file__), "--draw"],
+                           input=json.dumps(s), text=True, timeout=120)
             shown = s
         if "--once" in sys.argv:
             return

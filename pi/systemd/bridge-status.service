@@ -6,6 +6,10 @@ After=network-online.target
 User=graham
 # lgpio writes its notify pipes into the working directory, which is / for a service.
 Environment=LG_WD=/tmp
+# Never compete with wfserver's audio for the CPU.
+Nice=19
+CPUSchedulingPolicy=idle
+IOSchedulingClass=idle
 ExecStart=/usr/bin/python3 /home/graham/ic705-wifi-bridge/epaper/status.py
 Restart=on-failure
 RestartSec=30

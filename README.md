@@ -12,7 +12,9 @@ The Pi talks to the radio over USB and serves Icom's network protocol (UDP ports
 
 ## Status
 
-**Working with the IC-705 (2026-10-03).** A Pi Zero W runs wfview's `wfserver` (2.03, from the Raspberry Pi OS packages). A network client logs in, reads and sets the radio over CI-V, and receives 48 kHz audio: 99.85% of samples arrive, and about 0.3% of audio packets are lost over WiFi. The Zero W is near its limit, though: wfserver uses about 60% CPU even when idle. A Zero 2 W would give headroom.
+**Working with the IC-705 (2026-10-03).** A Pi Zero W runs wfview's `wfserver` (2.03, from the Raspberry Pi OS packages). A network client logs in, reads and sets the radio over CI-V, and receives 48 kHz audio. wfserver uses about 7% of the Zero W's CPU with no client and about 32% while streaming. About 0.3% of audio packets are lost over WiFi, one 20 ms packet at a time. Clients can recover these by asking for retransmits.
+
+Run as a service, wfserver needs a stdin that blocks. With /dev/null its keyboard thread spins on the whole CPU and starves the audio. `wfserver.service` handles this.
 
 The plan:
 

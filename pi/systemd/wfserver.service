@@ -5,7 +5,12 @@ Wants=network-online.target
 
 [Service]
 User=graham
-ExecStart=/usr/bin/wfserver -s /home/graham/wfserver/wfserver.ini -l /home/graham/wfserver/wfserver.log
+# wfserver reads key commands from stdin. A service's stdin is /dev/null, where every
+# read returns at once and its keyboard thread spins on a whole CPU, so give it a pipe
+# that never delivers anything.
+ExecStart=/bin/sh -c 'sleep infinity | exec /usr/bin/wfserver -s /home/graham/wfserver/wfserver.ini -l /home/graham/wfserver/wfserver.log'
+# The Zero W's CPU is nearly all wfserver's; keep other work from delaying audio.
+Nice=-10
 Restart=on-failure
 RestartSec=5
 
