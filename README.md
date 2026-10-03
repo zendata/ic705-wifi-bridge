@@ -12,7 +12,9 @@ The Pi talks to the radio over USB and serves Icom's network protocol (UDP ports
 
 ## Status
 
-wfview's `wfserver` (2.03, from the Raspberry Pi OS packages) is installed and runs on a Zero W, and the e-paper status screen works. Not yet tested with the radio attached. The plan:
+**Working with the IC-705 (2026-10-03).** A Pi Zero W runs wfview's `wfserver` (2.03, from the Raspberry Pi OS packages). A network client logs in, reads and sets the radio over CI-V, and receives 48 kHz audio: 99.85% of samples arrive, and about 0.3% of audio packets are lost over WiFi. The Zero W is near its limit, though: wfserver uses about 60% CPU even when idle. A Zero 2 W would give headroom.
+
+The plan:
 
 1. **Try wfview's server mode on the Pi.** wfview 2.03 is packaged for Raspberry Pi OS. This shows whether a Zero W can keep up with CI-V, audio and the scope, and whether clients connect cleanly.
 2. **Decide what to build.** If wfview works, this repo holds the setup plus an e-paper status display. If it is too heavy for the Zero W, this repo grows a lean bridge of its own.
@@ -45,6 +47,22 @@ sudo ~/ic705-wifi-bridge/pi/install.sh
   - `sudo bridge-mode computer`: the Pi is a USB network gadget for a computer, and wfserver is off.
 
 The e-paper driver defaults to the 2.13" V4 panel. For other versions, set `EPD_DRIVER=epd2in13_V3` or `epd2in13_V2` in the service. The drivers in `epaper/waveshare_epd/` come from [Waveshare's e-Paper repo](https://github.com/waveshareteam/e-Paper) under its MIT-style licence.
+
+## wfserver settings for the IC-705
+
+In `~/wfserver/wfserver.ini` (wfserver creates it on first run with `-s`):
+
+```
+1\AudioInput="plughw:CARD=CODEC,DEV=0"
+1\AudioOutput="plughw:CARD=CODEC,DEV=0"
+1\RigCIVuInt=164
+1\RigName=IC-705
+1\SerialPortRadio=/dev/serial/by-id/usb-Icom_Inc._IC-705_IC-705_<serial>-if00
+```
+
+Keep the quotes around the audio names. Qt's INI reader treats an unquoted value with commas as a list, which leaves wfserver with an empty device name and no audio. Use `bridge-login` for the user name and password.
+
+To spare the Zero W's CPU, boot it to the console (`sudo raspi-config nonint do_boot_behaviour B1`). Raspberry Pi Connect's remote shell still works, but its screen sharing needs the desktop.
 
 ## On the IC-705
 
