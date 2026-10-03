@@ -39,6 +39,7 @@ sudo ~/ic705-wifi-bridge/pi/install.sh
 
 - `bridge-status.service`: the e-paper status screen (`epaper/status.py`). It shows the WiFi network and signal, the IP address, whether the IC-705 is on USB, and whether the server is running. It redraws only when one of those changes.
 - `wfserver.service`: wfserver with its settings in `~/wfserver/wfserver.ini`. It is enabled by `bridge-mode radio`.
+- `bridge-login`: sets the user name and password that clients log in to wfserver with. Use the IC-705's own Network User ID and password, so existing clients connect unchanged. Then run `sudo systemctl restart wfserver`.
 - `bridge-mode`: switches the Pi's single USB port, then reboots:
   - `sudo bridge-mode radio`: the Pi is USB host for the IC-705 and wfserver runs.
   - `sudo bridge-mode computer`: the Pi is a USB network gadget for a computer, and wfserver is off.

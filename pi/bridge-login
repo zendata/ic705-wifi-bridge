@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Set the user name and password that network clients log in to wfserver with.
+
+Use the same Network User ID and password as the IC-705's own WiFi settings, so clients
+already set up for the radio connect to the bridge unchanged.
+
+    bridge-login                     asks for both
+    bridge-login --ini path.ini      another settings file (default ~/wfserver/wfserver.ini)
+
+Restart wfserver afterwards: sudo systemctl restart wfserver
+"""
+import getpass
+import os
+import re
+import sys
+
+# Icom's substitution table, indexed by (character code + position). wfserver keeps
+# passwords in its settings file obscured this way (kappanhang's passcode.go).
+_PASSCODE = bytes.fromhex(
+    "475d4c4266202346" "4e57453d67766041" "6239592d687e7c65" "7d4929727378216e"
+    "5a5e4a3e712c2a54" "3c3a634f43752779" "5b3570486b566f34" "326c30616d7b2f4b"
+    "64382b2e50403f55" "333725772426746a" "28534d69225c4431" "36583b7a515f52"
+)
+
+
+def passcode(text):
+    out = bytearray()
+    for i, ch in enumerate(text.encode("ascii")[:16]):
+        p = ch + i
+        if p > 126:
+            p = 32 + p % 127
+        out.append(_PASSCODE[p - 32])
+    return out.decode("ascii")
+
+
+def qsettings_string(value):
+    """Quote a value the way Qt's INI reader expects, whatever characters it holds."""
+    return '"' + value.replace("\\", "\\\\").replace('"', '\\"') + '"'
+
+
+def main():
+    ini = os.path.expanduser("~/wfserver/wfserver.ini")
+    if "--ini" in sys.argv:
+        ini = sys.argv[sys.argv.index("--ini") + 1]
+    user = input("Network User ID: ").strip()
+    password = getpass.getpass("Network password: ")
+    for name, value in (("User ID", user), ("Password", password)):
+        if not value or len(value) > 16 or not all(32 <= ord(c) < 127 for c in value):
+            sys.exit(f"{name} must be 1-16 plain ASCII characters")
+
+    text = open(ini).read()
+    text = re.sub(r"(?m)^Users\\1\\Username=.*$", lambda m: "Users\\1\\Username=" + qsettings_string(user), text)
+    text = re.sub(r"(?m)^Users\\1\\Password=.*$", lambda m: "Users\\1\\Password=" + qsettings_string(passcode(password)), text)
+    open(ini, "w").write(text)
+    print(f"Saved to {ini}. Restart wfserver: sudo systemctl restart wfserver")
+
+
+if __name__ == "__main__":
+    main()

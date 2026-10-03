@@ -4,6 +4,7 @@
 set -e
 here=$(dirname "$(readlink -f "$0")")
 install -m755 "$here/bridge-mode" /usr/local/sbin/bridge-mode
+install -m755 "$here/bridge-login" /usr/local/bin/bridge-login
 install -m644 "$here/systemd/wfserver.service" "$here/systemd/bridge-status.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable --now bridge-status.service
