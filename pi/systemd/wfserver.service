@@ -1,7 +1,11 @@
 [Unit]
 Description=wfserver: serve the IC-705 on USB as an Icom network radio
-After=network-online.target sound.target
+After=network-online.target sound.target dev-ic705.device
 Wants=network-online.target
+# wfserver opens the radio's serial port once and never reopens it, so if the radio is
+# switched off or unplugged it drops every command until restarted. Bind it to the port
+# (see udev/70-ic705.rules): it stops when the radio goes and starts when it returns.
+BindsTo=dev-ic705.device
 
 [Service]
 User=graham
@@ -15,4 +19,4 @@ Restart=on-failure
 RestartSec=5
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=dev-ic705.device

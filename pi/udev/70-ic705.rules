@@ -1,0 +1,3 @@
+# The IC-705's CI-V port (USB interface 0) as /dev/ic705, so systemd has a device unit,
+# dev-ic705.device, that comes and goes with the radio. wfserver.service binds to it.
+SUBSYSTEM=="tty", ENV{ID_VENDOR_ID}=="0c26", ENV{ID_MODEL_ID}=="0036", ENV{ID_USB_INTERFACE_NUM}=="00", SYMLINK+="ic705", TAG+="systemd"
