@@ -9,6 +9,10 @@ install -m644 "$here/systemd/wfserver.service" "$here/systemd/bridge-status.serv
 install -m644 "$here/udev/70-ic705.rules" /etc/udev/rules.d/
 udevadm control --reload
 udevadm trigger --subsystem-match=tty
+# A bigger socket buffer, so a busy wfserver delays the client's audio rather
+# than losing it; wfserver picks it up when it restarts below.
+install -m644 "$here/sysctl/90-ic705-bridge.conf" /etc/sysctl.d/
+sysctl -q --system
 # WiFi power saving adds latency and drops audio packets; PackageKit takes CPU the
 # Zero W does not have to spare.
 printf '[connection]\nwifi.powersave = 2\n' > /etc/NetworkManager/conf.d/90-wifi-powersave-off.conf
